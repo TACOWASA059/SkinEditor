@@ -8,8 +8,8 @@
 からダウンロード
 ###  pythonから実行する場合  
 ####  requirements  
-* windows
 * python3.8.12
+* tkinter
 ###  scripts
 ```bash
 cd SkinEditor
