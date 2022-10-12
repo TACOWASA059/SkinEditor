@@ -12,7 +12,8 @@
 * python3.8.12
 ###  scripts
 ```bash
-cd SkinEditor/
+cd SkinEditor
 pip install -r requirements.txt
+cd scripts
 python3 app_plot.py
 ```
