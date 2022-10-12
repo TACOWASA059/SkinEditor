@@ -20,6 +20,9 @@ class Application(tk.Frame):
         self.master.geometry("1000x700") 
         self.master.title('スキン編集')
 
+        # ウィンドウの x ボタンが押された時に呼ばれるメソッドを設定
+        self.master.protocol("WM_DELETE_WINDOW", self.delete_window)
+
         # ステータスバーの作成
         self.create_status_bar()
         self.listbox = tk.Listbox(width=20, height=12)
@@ -82,6 +85,15 @@ class Application(tk.Frame):
         #描画用フレームをウィンドウに配置(右下)
         frame.place(x=550,y=10,width=400,height=600)
         #frame.pack(fill='y',side=tk.RIGHT,anchor=tk.S)
+    def delete_window(self):#ウインドウを閉じる処理
+        ret = tk.messagebox.askyesno(
+            title = "終了確認",
+            message = "プログラムを終了しますか？")
+
+        if ret == True:
+            # 「はい」がクリックされたとき
+            self.master.destroy()
+            exit()
     def open_click(self):
         ''' ファイルを開く'''
         # ファイルを開くダイアログ
