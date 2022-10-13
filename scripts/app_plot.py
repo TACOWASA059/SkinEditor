@@ -11,6 +11,7 @@ import backward_flip_reform as bf
 import lj_flip as lf
 import upsidedown_flip as uf
 import face_rotate as fr
+import lift
 class Application(tk.Frame):
     img_list=[]
     def __init__(self, master=None):
@@ -70,6 +71,10 @@ class Application(tk.Frame):
         button.place(x=150,y=370) 
         label = tk.Label(self.master, text='回転方向')
         label.place(x=70,y=370) 
+        button = tk.Button(self.master, text='持ち上げスキンに変更',command=self.compress)
+        button.place(x=10,y=450) 
+        button = tk.Button(self.master, text='スキンの頭を別のスキンで置き換え',command=self.replace)
+        button.place(x=10,y=500) 
     def init_graph(self):
         # matplotlib配置用フレーム
         frame = tk.Frame(self.master,relief=tk.RIDGE)
@@ -273,6 +278,43 @@ class Application(tk.Frame):
         img=fr.head_rotate(img)
         self.img_list[indices[0]]=fr.head_rotate(img)
         self.plot_graph()
+    def compress(self):#圧縮
+        if len(self.img_list)==0:
+            self.output_status_bar("ファイルが選択されていません")
+            return 
+        indices = self.listbox.curselection()
+        if len(indices)==0:
+            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
+            return 
+        img=self.img_list[indices[0]]
+        self.img_list[indices[0]]=lift.compress_list(img)
+        self.plot_graph()
+    def replace(self):#headの置き換え
+        if len(self.img_list)==0:
+            self.output_status_bar("ファイルが選択されていません")
+            return 
+        indices = self.listbox.curselection()
+        if len(indices)==0:
+            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
+            return 
+        img=self.img_list[indices[0]]
+        ###
+        filename = tk.filedialog.askopenfilename(initialdir = os.getcwd())
+        basename = os.path.basename(filename)
+        print("入力ファイル:"+filename)
+        try:
+            img2 = image.imread(filename)
+            if len(img2)!=64 or len(img2[0])!=64 or len(img2[0][0])!=4:
+                print("invalid file:ファイルは64x64のpngもしくはjpegを選択してください\n")
+                self.output_status_bar("invalid file:ファイルは64x64のpngもしくはjpegを選択してください\n")
+                return
+            self.img_list[indices[0]]=lift.replace_head(img,img2)
+            self.plot_graph()
+        except TypeError:
+            print("入力ファイルが読み込めませんでした\n")
+            self.output_status_bar("入力ファイルが読み込めませんでした")
+        ###
+
     def plot_graph(self):
         if len(self.img_list)==0:
             img=np.zeros((64,64,4),dtype=np.uint8)
@@ -289,6 +331,7 @@ class Application(tk.Frame):
         sv.main(self.ax,img)
         # 表示
         self.fig_canvas.draw()
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = Application(master=root)
