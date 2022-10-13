@@ -1,6 +1,6 @@
 # SkinEditor
-マインクラフトスキンの反転と頭の回転ができるプログラム
-![スクリーンショット 2022-10-13 010123](https://user-images.githubusercontent.com/115648249/195392283-8aeb650e-5762-439c-b576-96ba33f8b310.png)
+マインクラフトスキンの反転と頭の回転などができるプログラム
+![スクリーンショット 2022-10-14 011523](https://user-images.githubusercontent.com/115648249/195650504-8dacbace-1cce-4bb3-846f-bf7a3676f2f0.png)
 ## installation
 ### 実行ファイル(.exe)を使う場合
 /release/latest  
