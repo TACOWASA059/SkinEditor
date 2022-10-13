@@ -6,7 +6,8 @@
 windowsのみ対応  
 /release/latest  
 [リンク](https://github.com/TACOWASA059/SkinEditor/releases/)
-からダウンロード
+からapp_plot.exeをダウンロード  
+そのまま実行
 ###  pythonから実行する場合  
 ####  requirements  
 * python3.8.12
