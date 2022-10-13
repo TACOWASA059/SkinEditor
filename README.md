@@ -3,7 +3,7 @@
 ![スクリーンショット 2022-10-14 011523](https://user-images.githubusercontent.com/115648249/195650504-8dacbace-1cce-4bb3-846f-bf7a3676f2f0.png)
 ## installation
 ### 実行ファイル(.exe)を使う場合
-windowsのみ対応
+windowsのみ対応  
 /release/latest  
 [リンク](https://github.com/TACOWASA059/SkinEditor/releases/)
 からダウンロード
