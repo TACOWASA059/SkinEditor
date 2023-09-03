@@ -1,8 +1,6 @@
 # SkinEditor
-マインクラフトスキンの反転と頭の回転などができるプログラム
-https://twitter.com/TACOWASA_059_/status/1579935124409708544
-
-![スクリーンショット 2022-10-14 011523](https://user-images.githubusercontent.com/115648249/195650504-8dacbace-1cce-4bb3-846f-bf7a3676f2f0.png)
+マインクラフトスキンの反転と頭の回転などの一括処理ができるプログラム
+![スクリーンショット 2022-10-14 011523](image/display.png)
 ## installation
 ### 実行ファイル(.exe)を使う場合
 windowsのみ対応  

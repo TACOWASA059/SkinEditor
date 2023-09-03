@@ -1,5 +1,0 @@
-matplotlib==3.6.1
-numpy==1.23.3
-opencv-python==4.6.0.66
-Pillow==9.2.0
-pyinstaller

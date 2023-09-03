@@ -2,3 +2,9 @@ build/
 dist/
 __pycache__/
 app_plot.spec
+app_plot.build/
+app_plot.dist/
+app_plot.onefile-build/
+icon/
+
+*.exe
