@@ -866,7 +866,7 @@ class Application(tk.Frame):
                 self.output_status_bar("保存はキャンセルされました。")
                 return # 上書きしない場合はスキップ
             for i in indices:
-                image.imsave(directory+"/"+self.listbox[index].get(i),img=self.erase_parts(index,self.img_list[index][i]))
+                image.imsave(directory+"/"+self.listbox[index].get(i),self.erase_parts(index,self.img_list[index][i]))
     #ステータスバーを作成
     def create_status_bar(self):
         '''ステータスバー'''
