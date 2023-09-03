@@ -1,12 +1,11 @@
 import tkinter as tk
-from tkinter import filedialog,messagebox
+from tkinter import filedialog,messagebox,font
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
 import matplotlib.image as image
 import matplotlib.pyplot as plt
 import skin_view as sv
 import os
-from tkinter import font
 import backward_flip_reform as bf
 import lj_flip as lf
 import upsidedown_flip as uf
@@ -21,7 +20,7 @@ class Application(tk.Frame):
         super().__init__(master)
         self.img_list=[[],[],[],[]]
         self.master = master
-        self.master.geometry("1000x900") 
+        self.master.geometry("1500x900") 
         self.master.title('スキン編集')
         
         self.font=font.Font ( size=10)
@@ -333,6 +332,27 @@ class Application(tk.Frame):
         self.Lleg_button4.config(command=lambda btn=self.Lleg_button4: self.change_state(button=btn,index=2))
         self.Lleg_button4.place(x=x+50,y=y+105)
         
+        x=900
+        y=50
+        self.head_button5=tk.Button(root,text="head",width=4,height=2,relief=tk.SOLID,bg="orange")
+        self.head_button5.config(command=lambda btn=self.head_button5: self.change_3state(button=btn))
+        self.head_button5.place(x=x+30,y=y)
+        self.body_button5=tk.Button(root,text="body",width=4,height=3,relief=tk.SOLID,bg="orange")
+        self.body_button5.config(command=lambda btn=self.body_button5: self.change_3state(button=btn))
+        self.body_button5.place(x=x+30,y=y+45)
+        self.Rarm_button5=tk.Button(root,text="R\narm",width=2,height=3,relief=tk.SOLID,bg="orange")
+        self.Rarm_button5.config(command=lambda btn=self.Rarm_button5: self.change_3state(button=btn))
+        self.Rarm_button5.place(x=x+5,y=y+45)
+        self.Larm_button5=tk.Button(root,text="L\narm",width=2,height=3,relief=tk.SOLID,bg="orange")
+        self.Larm_button5.config(command=lambda btn=self.Larm_button5: self.change_3state(button=btn))
+        self.Larm_button5.place(x=x+70,y=y+45)
+        self.Rleg_button5=tk.Button(root,text="R\nleg",width=2,height=3,relief=tk.SOLID,bg="orange")
+        self.Rleg_button5.config(command=lambda btn=self.Rleg_button5: self.change_3state(button=btn))
+        self.Rleg_button5.place(x=x+25,y=y+105)
+        self.Lleg_button5=tk.Button(root,text="L\nleg",width=2,height=3,relief=tk.SOLID,bg="orange")
+        self.Lleg_button5.config(command=lambda btn=self.Lleg_button5: self.change_3state(button=btn))
+        self.Lleg_button5.place(x=x+50,y=y+105)
+        
         # 描画のslimかwideかを決める用
         self.iswide=True
         
@@ -343,14 +363,272 @@ class Application(tk.Frame):
         button.place(x=100,y=652)
         
         label=tk.Label(self.master,text="パーツ境界を表示",font=self.boldfont)
-        label.place(x=770,y=410)
+        label.place(x=870,y=330)
         
         self.display_border_button=tk.Button(self.master,text="表示",font=self.font,command=self.change_display_border)
-        self.display_border_button.place(x=896,y=408)
+        self.display_border_button.place(x=996,y=328)
         
         self.display_index=0
+        
+        self.canvas_size=7
+        self.canvas = tk.Canvas(root, bg="#c0c0c0", width=64*self.canvas_size, height=64*self.canvas_size)
+        self.canvas.place(x=556,y=360)
+        self.add_skin_border(self.canvas)
+        ###################################################
+        self.image=Image.fromarray(np.zeros(shape=(64,64,4),dtype=np.uint8))
+        self.canvas.bind("<Button-2>", self.select_pixel)
+        self.canvas.bind("<ButtonPress-1>", self.start_selection_add)
+        self.canvas.bind("<Button1-Motion>", self.update_selection_add)
+        self.canvas.bind("<ButtonRelease-1>", self.finish_selection_add)
 
+        self.canvas.bind("<ButtonPress-2>", self.start_selection_remove)
+        self.canvas.bind("<Button2-Motion>", self.update_selection_remove)
+        self.canvas.bind("<ButtonRelease-2>", self.finish_selection_remove)
+        label=tk.Label(root,text="画像修正用",font=self.boldfont)
+        label.place(x=1050,y=10)
+        # 選択をリセットするボタン
+        self.reset_button=tk.Button(root,text='選択解除',font=self.font,command=self.reset_selection)
+        self.reset_button.place(x=1100,y=50)
+        # 閾値の設定
+        self.Threshold = tk.DoubleVar()
+        self.Threshold.set(50)  # 初期値を設定
+        # スクロールバーと変数の結び付け
+        label=tk.Label(root,text="類似色の閾値",font=self.font)
+        label.place(x=1100,y=235)
+        self.scale = tk.Scale(root, command=self.set_threshold, orient="horizontal",font=self.font, from_=0, to=250,showvalue=True)
+        self.scale.place(x=1100,y=250)
+        self.scale.set(50)
+        #選択部分を残すモードと選択部分を削除するモード
+        self.mode = tk.BooleanVar()
+        self.mode.set(True)
+        self.label_frame = tk.LabelFrame(root, text='削除モード',font=self.font)
+        self.radio_a = tk.Radiobutton(self.label_frame, text='選択部分を残す',font=self.font, command=self.update_mode, value=True, variable=self.mode)
+        self.radio_b = tk.Radiobutton(self.label_frame, text='選択部分を消す',font=self.font, command=self.update_mode, value=False, variable=self.mode)
+        self.label_frame.place(x=1100,y=100)
+        self.radio_a.pack(side="left")
+        self.radio_b.pack(side="right")
+        #色選択のモード
+        self.color_mode = tk.BooleanVar()
+        self.color_mode.set(True)
+        self.label_frame2 = tk.LabelFrame(root, text='色選択モード',font=self.font)
+        self.radio_a2 = tk.Radiobutton(self.label_frame2, text='選択部分のみ',font=self.font, command=self.update_mode, value=True, variable=self.color_mode)
+        self.radio_b2 = tk.Radiobutton(self.label_frame2, text='類似色も自動選択',font=self.font, command=self.update_mode, value=False, variable=self.color_mode)
+        self.label_frame2.place(x=1100,y=150)
+        self.radio_a2.pack(side="left")
+        self.radio_b2.pack(side="right")
+        # 画像を表示するキャンバス
+        self.preview_canvas = tk.Canvas(root, bg="#c0c0c0", width=64*self.canvas_size, height=64*self.canvas_size)
+        self.preview_canvas.place(x=1026,y=360)
+        self.add_skin_border(self.preview_canvas)
+        # slim to wide
+        self.slim2wide_button=tk.Button(root,text="slim→wide",font=self.font,command=self.slim2wide)
+        self.slim2wide_button.place(x=1100,y=200)
+        # wide to slim
+        self.wide2slim_button=tk.Button(root,text="wide→slim",font=self.font,command=self.wide2slim)
+        self.wide2slim_button.place(x=1200,y=200)
+        #読み込みリストに追加
+        reflect_button=tk.Button(root,text="入力画像を読み込みリストに追加",font=self.font,command=lambda :self.reflect(i=0))
+        reflect_button.place(x=1230,y=270)
+        reflect_button=tk.Button(root,text="プレビューを読み込みリストに追加",font=self.font,command=lambda :self.reflect(i=1))
+        reflect_button.place(x=1230,y=300)
+        label=tk.Label(root,text="入力画像",font=self.boldfont)
+        label.place(x=730,y=340)
+        label=tk.Label(root,text="プレビュー",font=self.boldfont)
+        label.place(x=1230,y=340)
+
+        # 矩形選択関連の変数
+        self.selection_start = None
+        self.selection_rectangle = None
+        self.is_selecting = False
+        # 選択したピクセルを保持するリスト
+        self.selected_pixels = set()
+        ####################################################
         self.init_graph()
+    # 画像をリストに反映
+    def reflect(self,i):
+        if hasattr(self,"fname"):
+            if i==0:
+                img=np.array(self.image.copy(),dtype=float)/255.0
+            elif i==1:
+                img=np.array(self.processed_image.copy(),dtype=float)/255.0
+            self.img_list[0].append(img)
+            self.add_List(0,self.fname)
+            self.reset_selection()
+            self.highlight_selected_pixels()
+    #色の閾値
+    def set_threshold(self,value):
+        self.Threshold.set(self.scale.get())
+        self.highlight_selected_pixels()
+        self.add_skin_border(self.canvas)
+        self.add_skin_border(self.preview_canvas)
+    # モード切替１
+    def update_mode(self):
+        self.highlight_selected_pixels()
+    # 範囲選択の削除
+    def reset_selection(self):
+        self.selected_pixels = set()
+        self.highlight_selected_pixels()
+    #範囲に追加
+    def add_pixel(self,i,j):
+        try:
+            r, g, b, alpha = self.image.getpixel((i,j))
+        except IndexError:
+            return
+        if alpha==0:
+            return
+        if (i, j) not in self.selected_pixels:
+            self.selected_pixels.add((i, j))
+    #範囲から削除
+    def remove_pixel(self,i,j):
+        try:
+            r, g, b, alpha = self.image.getpixel((i,j))
+        except IndexError:
+            return
+        if alpha==0:
+            return
+        if (i, j) in self.selected_pixels:
+            self.selected_pixels.remove((i, j))
+    def update_pixel(self,i,j):
+        _, _, _, alpha = self.image.split()
+        if alpha.getpixel((i,j))==0:
+            return
+        if (i, j) in self.selected_pixels:
+            self.selected_pixels.remove((i, j))
+        else:
+            self.selected_pixels.add((i, j))
+    def start_selection_add(self, event):
+        if not self.is_selecting:
+            self.selection_start = (event.x, event.y)
+            self.is_selecting = True
+    def update_selection_add(self, event):
+        if self.is_selecting:
+            if self.selection_rectangle:
+                self.canvas.delete(self.selection_rectangle)
+            x, y = self.selection_start
+            self.selection_rectangle = self.canvas.create_rectangle(x, y, event.x, event.y, outline="red")
+
+    def finish_selection_add(self, event):
+        if self.is_selecting:
+            if self.selection_rectangle:
+                self.canvas.delete(self.selection_rectangle)
+                x1, y1 = self.selection_start
+                x2, y2 = event.x, event.y
+                i1,i2=int(x1/self.canvas_size),int(x2/self.canvas_size)
+                j1,j2=int(y1/self.canvas_size),int(y2/self.canvas_size)
+                for i in range(min(i1, i2), max(i1, i2)+1):
+                    for j in range(min(j1,j2), max(j1, j2)+1):
+                        self.add_pixel(i,j)
+                self.highlight_selected_pixels()
+                self.is_selecting = False
+    def start_selection_remove(self, event):
+        if not self.is_selecting:
+            self.selection_start = (event.x, event.y)
+            self.is_selecting = True
+    def update_selection_remove(self, event):
+        if self.is_selecting:
+            if self.selection_rectangle:
+                self.canvas.delete(self.selection_rectangle)
+            x, y = self.selection_start
+            self.selection_rectangle = self.canvas.create_rectangle(x, y, event.x, event.y, outline="blue")
+
+    def finish_selection_remove(self, event):
+        if self.is_selecting:
+            if self.selection_rectangle:
+                self.canvas.delete(self.selection_rectangle)
+                x1, y1 = self.selection_start
+                x2, y2 = event.x, event.y
+                i1,i2=int(x1/self.canvas_size),int(x2/self.canvas_size)
+                j1,j2=int(y1/self.canvas_size),int(y2/self.canvas_size)
+                for i in range(min(i1, i2), max(i1, i2)+1 ):
+                    for j in range(min(j1,j2), max(j1, j2)+1):
+                        self.remove_pixel(i,j)
+                self.highlight_selected_pixels()
+                self.is_selecting = False
+
+    def select_pixel(self, event):
+        if not self.is_selecting:
+            x, y = event.x, event.y
+            i, j = int(x/self.canvas_size), int(y/self.canvas_size)
+            self.update_pixel(i,j)
+            self.highlight_selected_pixels()
+    # 入力画像の更新
+    def highlight_selected_pixels(self):
+        if not hasattr(self,"image"):
+            return
+        highlighted_image = Image.fromarray(self.erase_parts(self.display_index,np.array(self.image.copy()))).resize((64*self.canvas_size, 64*self.canvas_size),Image.NEAREST)
+        draw = ImageDraw.Draw(highlighted_image)
+        
+        for x, y in self.selected_pixels:
+            draw.rectangle((x*self.canvas_size, y*self.canvas_size, (x+1)*self.canvas_size, (y+1)*self.canvas_size), outline="red")
+        self.photo = ImageTk.PhotoImage(highlighted_image)
+        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
+        self.update_preview()
+        self.add_skin_border(self.canvas)
+        self.add_skin_border(self.preview_canvas)
+    # プレビューの更新
+    def update_preview(self):
+        image=self.process()
+        resized_image = image.resize((64*self.canvas_size, 64*self.canvas_size),Image.NEAREST)
+        self.preview_photo = ImageTk.PhotoImage(resized_image)
+        self.preview_canvas.create_image(0, 0, anchor=tk.NW, image=self.preview_photo)
+    # slimからwideに
+    def slim2wide(self):
+        if not hasattr(self,"image"):
+            return
+        img=np.array(self.image.copy(),dtype=float)/255.0
+        img=SlimWideConverter.slim2wide(img)
+        self.image=Image.fromarray(np.array(img*255,dtype=np.uint8))
+        self.reset_selection()
+        self.highlight_selected_pixels()
+        self.add_skin_border(self.canvas)
+        self.add_skin_border(self.preview_canvas)
+    # wideからslimに
+    def wide2slim(self):
+        if not hasattr(self,"image"):
+            return
+        img=np.array(self.image.copy(),dtype=float)/255.0
+        img=SlimWideConverter.wide2slim(img)
+        self.image=Image.fromarray(np.array(img*255,dtype=np.uint8))
+        self.reset_selection()
+        self.highlight_selected_pixels()
+        self.add_skin_border(self.canvas)
+        self.add_skin_border(self.preview_canvas)
+    # previewの更新用
+    def process(self):
+        processed_image = self.image.copy()
+        processed_image = Image.fromarray(self.erase_parts(self.display_index,np.array(processed_image)))
+        if self.color_mode.get()==True:
+            pixels_to_remove = set(self.selected_pixels)
+            for x in range(processed_image.width):
+                for y in range(processed_image.height):
+                    if self.mode.get()==True:
+                        if (x, y) not in pixels_to_remove:
+                            processed_image.putpixel((x, y), (0,0,0,0))  # 削除するピクセルを白色で塗りつぶす
+                    else :
+                        if (x, y) in pixels_to_remove:
+                            processed_image.putpixel((x, y), (0,0,0,0))  # 削除するピクセルを白色で塗りつぶす
+                        
+        else :
+            remove_list=set([self.image.getpixel((x[0],x[1])) for x in self.selected_pixels])
+            for x in range(processed_image.width):
+                for y in range(processed_image.height):
+                    distance=255.0
+                    r2,g2,b2,a2=processed_image.getpixel((x,y))
+                    for pixel in remove_list:
+                        r,g,b,a=pixel
+                        if a==0:
+                            continue
+                        distance=min(distance,np.sqrt((r-r2)*(r-r2)+(g-g2)*(g-g2)+(b-b2)*(b-b2)))
+                    if self.mode.get()==True:
+                        if distance>self.Threshold.get():
+                            processed_image.putpixel((x, y), (0, 0, 0,0))  
+                    else:
+                        if distance<=self.Threshold.get():
+                            processed_image.putpixel((x, y), (0, 0, 0,0))  
+        self.processed_image=processed_image
+        return processed_image
+    ###############################################
+    # listbox内のコンテンツの移動
     def move_list_contents(self,id1,id2):
         if len(self.img_list[id1])==0:
             self.output_status_bar("ファイルが選択されていません")
@@ -376,9 +654,11 @@ class Application(tk.Frame):
         if self.display_border_button["text"]=="表示":
             self.display_border_button.config(text="非表示")
             self.canvas.delete("rectangle")
+            self.preview_canvas.delete("rectangle")
         else:
             self.display_border_button.config(text="表示")
             self.add_skin_border(self.canvas)
+            self.add_skin_border(self.preview_canvas)
     def change_state(self,button,index):
         if button["relief"]=="solid":
             button.config(relief=tk.FLAT)
@@ -387,6 +667,17 @@ class Application(tk.Frame):
             button.config(relief=tk.SOLID)
             button.config(bg="orange")
         self.plot_graph(index)
+    def change_3state(self,button):
+        if button["relief"]=="solid":
+            button.config(relief=tk.RIDGE)
+            button.config(bg="#f0e68c")
+        elif button["relief"]=="ridge":
+            button.config(relief=tk.FLAT)
+            button.config(bg="white")
+        else :
+            button.config(relief=tk.SOLID)
+            button.config(bg="orange")
+        self.plot_graph(self.display_index,flag=True)
     def select_all(self,index):
         self.listbox[index].select_set(0, tk.END)  # 0から最後までの要素を選択
     def change_slim_wide(self):
@@ -400,31 +691,34 @@ class Application(tk.Frame):
     def init_graph(self):
         # matplotlib配置用フレーム
         frame = tk.Frame(self.master,relief=tk.SOLID)
+        #描画用フレームをウィンドウに配置(右)
+        frame.place(x=556,y=10,width=284,height=320)
         if hasattr(self,"ax"):
+            self.azim = self.ax.azim  # 現在の方位角を取得
+            self.elev = self.ax.elev  # 現在の仰角を取得
             self.ax.clear()
         if not hasattr(self,"fig"):
-            self.fig = plt.figure(figsize=(5,20))
+            self.fig = plt.figure(figsize=(10,10))
+            self.fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
         self.ax = self.fig.add_subplot(111, projection='3d')
-        self.ax.axis("off")
+        self.ax.set_position([0, 0, 1, 1])
         self.ax.set_box_aspect((1,1,2))
+        if hasattr(self,"azim") and hasattr(self,"elev"):
+            self.ax.view_init(azim=self.azim, elev=self.elev)
+        self.ax.axis("off")
+        
         self.fig_canvas = FigureCanvasTkAgg(self.fig, frame)
         # matplotlibのツールバーを作成
         self.toolbar = NavigationToolbar2Tk(self.fig_canvas, frame)
         # matplotlibのグラフをフレームに配置
-        self.fig_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-        #描画用フレームをウィンドウに配置(右下)
-        frame.place(x=556,y=10,width=384,height=400)
-        #frame.pack(fill='y',side=tk.RIGHT,anchor=tk.S)
+        self.fig_canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True,padx=0,pady=0)
         
-        self.canvas_size=6
-        self.canvas = tk.Canvas(root, bg="#c0c0c0", width=64*self.canvas_size, height=64*self.canvas_size)
-        self.canvas.place(x=556,y=430)
-        self.add_skin_border(self.canvas)
+        #frame.pack(fill='y',side=tk.RIGHT,anchor=tk.S)
         
     def add_skin_border(self,canvas):
         if not self.display_border_button["text"]=="表示":
             return
-        size=self.canvas_size
+        canvas.delete("rectangle")
         self.add_skin_parts_border(canvas,0,0,8,8,8,'#7fff00')
         self.add_skin_parts_border(canvas,32,0,8,8,8,'#006400')
         
@@ -460,13 +754,16 @@ class Application(tk.Frame):
 
         if ret == True:
             # 「はい」がクリックされたとき
+            plt.clf()
             plt.close()
+            
             self.master.destroy()
             exit()
     def open_file(self,index):
         ''' ファイルを開く'''
         # ファイルを開くダイアログ
         filenames = filedialog.askopenfilenames(initialdir = os.getcwd())
+        id=len(self.img_list[index])
         for filename in filenames:
             if not filename.endswith('.png'):
                 continue
@@ -487,12 +784,16 @@ class Application(tk.Frame):
             else:
                 print("入力ファイルが読み込めませんでした\n")
                 self.output_status_bar("入力ファイルが読み込めませんでした")
+        if len(self.img_list[index])!=0:
+            if id>1:
+                self.listbox[index].selection_clear(0,id)
+            self.listbox[index].select_set(id,tk.END)
     def open_dir(self,index):
         ''' ディレクトリを選択し、その中のPNGファイルを読み込む '''
         directory = filedialog.askdirectory(initialdir=os.getcwd())
         if not directory:
             return  # キャンセルされた場合
-
+        id=len(self.img_list[index])
         # ディレクトリ内のPNGファイルを読み込む
         n=0
         for filename in os.listdir(directory):
@@ -506,6 +807,10 @@ class Application(tk.Frame):
                         self.img_list[index].append(img)
                         self.add_List(index,filename)
                         n+=1
+        if len(self.img_list[index])!=0:
+            if id>1:
+                self.listbox[index].selection_clear(0,id)
+            self.listbox[index].select_set(id,tk.END)
         self.output_status_bar(f"{n}個のファイルがリストに追加されました")
     #リストボックスに追加
     def add_List(self,index,text):
@@ -841,7 +1146,37 @@ class Application(tk.Frame):
             if self.Larm_button3["relief"]=="flat":
                 array1[32:48,48:64,:]=0
             array1=np.transpose(array1,axes=(1, 0, 2))
+            
+        array1=np.transpose(array1,axes=(1, 0, 2))
+        if self.head_button5["relief"]=="ridge":
+            array1[32:64,0:16,:]=0
+        elif self.head_button5["relief"]=="flat":
+            array1[:64,0:16,:]=0
+        if self.body_button5["relief"]=="ridge":
+            array1[16:40,32:48,:]=0
+        elif self.body_button5["relief"]=="flat":
+            array1[16:40,16:48,:]=0
+        if self.Rarm_button5["relief"]=="ridge":
+            array1[40:56,32:48,:]=0
+        elif self.Rarm_button5["relief"]=="flat":
+            array1[40:56,16:48,:]=0
+        if self.Rleg_button5["relief"]=="ridge":
+            array1[0:16,32:48,:]=0
+        elif self.Rleg_button5["relief"]=="flat":
+            array1[0:16,16:48,:]=0
+        if self.Lleg_button5["relief"]=="ridge":
+            array1[0:16,48:64,:]=0
+        elif self.Lleg_button5["relief"]=="flat":
+            array1[0:32,48:64,:]=0
+        if self.Larm_button5["relief"]=="ridge":
+            array1[48:64,48:64,:]=0
+        elif self.Larm_button5["relief"]=="flat":
+            array1[32:64,48:64,:]=0
+        
+        array1=np.transpose(array1,axes=(1, 0, 2))
         return array1
+    
+    #余白の削除
     def erase_margin(self):
         if len(self.img_list[0])==0:
             self.output_status_bar("ファイルが選択されていません")
@@ -875,20 +1210,29 @@ class Application(tk.Frame):
         array1[48:52,60:,:]=0
         return array1
         
-    def plot_graph(self,index):
-        if len(self.img_list[index])==0 :
-            img=np.zeros((64,64,4),dtype=np.uint8)
-            self.output_status_bar("ファイルが選択されていません")
-        elif len(self.img_list[index])==1:
-            img=self.img_list[index][0]
-        else :
-            indices = self.listbox[index].curselection()
-            if len(indices)==0:
+    def plot_graph(self,index,flag=False):
+        if not flag:
+            if len(self.img_list[index])==0 :
+                img=np.zeros((64,64,4),dtype=np.uint8)
                 self.output_status_bar("ファイルが選択されていません")
-                return
-            img=self.img_list[index][indices[0]]
-        plt.clf()
-        img=self.erase_parts(index,img)
+                return 
+            elif len(self.img_list[index])==1:
+                img=self.img_list[index][0]
+                self.fname=self.listbox[index].get(0)
+            else :
+                indices = self.listbox[index].curselection()
+                if len(indices)==0:
+                    self.output_status_bar("ファイルが選択されていません")
+                    return
+                img=self.img_list[index][indices[0]]
+                self.fname=self.listbox[index].get(indices[0])
+            plt.clf()
+            self.image=Image.fromarray((img * 255).astype('uint8'))
+            
+            img=self.erase_parts(index,img)
+            self.display_index=index
+        else :
+            img=self.erase_parts(index,np.array(self.image,dtype=float)/255.0)
         self.init_graph()
         # グラフの描画
         sv.main(self.ax,img,self.iswide)
@@ -898,9 +1242,11 @@ class Application(tk.Frame):
         img=Image.fromarray((img * 255).astype('uint8')).resize((64*self.canvas_size, 64*self.canvas_size),Image.NEAREST)
         self.photo = ImageTk.PhotoImage(img)
         self.canvas.delete("all")
+        self.preview_canvas.delete("all")
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
+        self.highlight_selected_pixels()
         self.add_skin_border(self.canvas)
-        self.display_index=index
+        self.add_skin_border(self.preview_canvas)
 
 if __name__ == "__main__":
     root = tk.Tk()
