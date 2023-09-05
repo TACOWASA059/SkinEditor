@@ -88,15 +88,21 @@ def cut_list(img1,axis):
     #リストを半分にする
     img2=[]
     if axis==0:
+        img2=np.zeros((int(len(img1)/2),len(img1[0]),4))
         #行を半分にする
         for i in range(int(len(img1)/2)):
-            img2.append((img1[2*i]/2+img1[2*i+1]/2))
+            for j in range(len(img1[0])):
+                if(img1[2*i][j][3]!=0 and img1[2*i+1][j][3]!=0):
+                    img2[i][j]=((img1[2*i][j]/2+img1[2*i+1][j]/2))
     elif axis==1:
         #列を半分にする
-        img3=img1.transpose(1,0,2)
-        for i in range(int(len(img3)/2)):
-            img2.append((img3[2*i]/2+img3[2*i+1]/2))
-        img2=np.array(img2).transpose(1,0,2)
+        img2=np.zeros((len(img1),int(len(img1[0])/2),4))
+        #img3=img1.transpose(1,0,2)
+        for j in range(len(img1[0])):
+            for i in range(int(len(img1)/2)):
+                if(img1[j][2*i][3]!=0 and img1[j][2*i+1][3]!=0):
+                    img2[j][i]=((img1[j][2*i]/2+img1[j][2*i+1]/2))
+        #img2=np.array(img2).transpose(1,0,2)
     return img2
 
 def upperside_leg(img1,x,y):

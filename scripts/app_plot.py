@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinterdnd2 import DND_FILES, TkinterDnD
 from tkinter import filedialog,messagebox,font
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
@@ -6,6 +7,8 @@ import matplotlib.image as image
 import matplotlib.pyplot as plt
 import skin_view as sv
 import os
+import re
+import copy
 import backward_flip_reform as bf
 import lj_flip as lf
 import upsidedown_flip as uf
@@ -13,6 +16,8 @@ import face_rotate as fr
 import lift
 import Convert32to64
 import SlimWideConverter
+import SkinRetreive as sr
+import BringOneLayer as bl
 from PIL import Image, ImageTk, ImageDraw
 
 class Application(tk.Frame):
@@ -22,6 +27,8 @@ class Application(tk.Frame):
         self.master = master
         self.master.geometry("1500x900") 
         self.master.title('スキン編集')
+        
+        
         
         self.font=font.Font ( size=10)
         self.boldfont=font.Font(size=10,weight="bold")
@@ -38,6 +45,8 @@ class Application(tk.Frame):
         x=310
         y=8
         listbox1 = tk.Listbox(width=20, height=12,selectmode="extended")
+        listbox1.drop_target_register(DND_FILES)
+        listbox1.dnd_bind('<<Drop>>', lambda e:self.input_file(e,index=0))
         listbox1.place(x=x,y=y+22,width=190,height=100)
         #スクロールバーの作成
         scroll=tk.Scrollbar(listbox1)
@@ -61,8 +70,11 @@ class Application(tk.Frame):
         
         #描画ボタン作成
         button = tk.Button(self.master, text = "描画⇒",font=self.font, command = self.plot_graph)
-        button.place(x=x+190,y=y+32)
         button.config(command=lambda id=0: self.plot_graph(index=id))
+        button.place(x=x+190,y=y+32)
+        button = tk.Button(self.master, text='複製',font=self.font,command=self.duplicate)
+        button.place(x=x+60,y=y+122) 
+        
         button = tk.Button(self.master,text="全選択",font=self.font)
         button.place(x=x+100,y=y+122)
         button.config(command=lambda id=0: self.select_all(index=id))
@@ -80,6 +92,8 @@ class Application(tk.Frame):
         ###########################################################
         y=180
         listbox2 = tk.Listbox(width=20, height=12,selectmode="extended")
+        listbox2.drop_target_register(DND_FILES)
+        listbox2.dnd_bind('<<Drop>>', lambda e:self.input_file(e,index=1))
         listbox2.place(x=x,y=y+22,width=190,height=100)
         #スクロールバーの作成
         scroll=tk.Scrollbar(listbox2)
@@ -120,6 +134,8 @@ class Application(tk.Frame):
         ###########################################################
         y=380
         listbox3 = tk.Listbox(width=20, height=12,selectmode="extended")
+        listbox3.drop_target_register(DND_FILES)
+        listbox3.dnd_bind('<<Drop>>', lambda e:self.input_file(e,index=2))
         listbox3.place(x=x,y=y+22,width=190,height=100)
         #スクロールバーの作成
         scroll=tk.Scrollbar(listbox3)
@@ -196,7 +212,7 @@ class Application(tk.Frame):
         self.listbox=[listbox1,listbox2,listbox3,listbox4]
         ###########################################################
         #反転ボタン
-        label = tk.Label(self.master, text='スキンを反転',font=self.boldfont)
+        label = tk.Label(self.master, text='[1]スキンを反転',font=self.boldfont)
         label.place(x=10,y=10) 
         button = tk.Button(self.master, text = "前後",font=self.font)
         button.config(command=lambda id=0: self.backwards(index=id))
@@ -208,7 +224,7 @@ class Application(tk.Frame):
         button.place(x=90,y=40)   
         button.config(command=lambda id=0: self.upsidedown(index=id))
         #head回転
-        label = tk.Label(self.master, text='headを回転',font=self.boldfont)
+        label = tk.Label(self.master, text='[2]headを回転',font=self.boldfont)
         
         # ラベルに画像を配置
         label.place(x=170,y=10) 
@@ -226,22 +242,52 @@ class Application(tk.Frame):
         button.place(x=250,y=70) 
         label = tk.Label(self.master, text='回転方向',font=self.font)
         label.place(x=190,y=70) 
+        label = tk.Label(self.master, text='[3]持ち上げ',font=self.boldfont)
+        label.place(x=10,y=70) 
         button = tk.Button(self.master, text='持ち上げスキンに変更',font=self.font,command=self.compress)
         button.place(x=10,y=100) 
         button = tk.Button(self.master, text='頭を別スキンで置き換え',font=self.font,command=self.replace)
-        button.place(x=10,y=70) 
-        button = tk.Button(self.master, text='slimスキンに統一',font=self.font,command=self.toslim)
         button.place(x=10,y=130) 
-        button = tk.Button(self.master, text='wideスキンに統一',font=self.font,command=self.towide)
-        button.place(x=170,y=130) 
-        button = tk.Button(self.master, text='スキンの余白を削除',font=self.font,command=self.erase_margin)
-        button.place(x=10,y=160) 
+        
+        
+        label = tk.Label(self.master, text='[4]slim/wide',font=self.boldfont)
+        label.place(x=170,y=130) 
+        button = tk.Button(self.master, text='wide',font=self.font,command=self.towide)
+        button.place(x=170,y=160) 
+        button = tk.Button(self.master, text='slim',font=self.font,command=self.toslim)
+        button.place(x=210,y=160) 
+        
+        label = tk.Label(self.master, text='[5]踏みつけ',font=self.boldfont)
+        label.place(x=10,y=160) 
+        button = tk.Button(self.master, text='踏みつけスキンに変更',font=self.font,command=self.toStamp)
+        button.place(x=10,y=190) 
+        button = tk.Button(self.master, text='足を別の頭に置き換え',font=self.font,command=self.replace_leg)
+        button.place(x=10,y=220) 
+        
+        label = tk.Label(self.master, text='[6]レイヤー',font=self.boldfont)
+        label.place(x=170,y=190) 
+        button = tk.Button(self.master, text='内側レイヤーに集約',font=self.font,command=self.toInnerLayer)
+        button.place(x=170,y=220) 
+        button = tk.Button(self.master, text='外側レイヤーに集約',font=self.font,command=self.toOuterLayer)
+        button.place(x=170,y=250) 
+        
+        label=tk.Label(self.master,font=self.boldfont,text="[7]MCID入力")
+        label.place(x=10,y=250)
+        button=tk.Button(self.master,font=self.font,text="スキン取得",command=self.retreive_skin)
+        button.place(x=90,y=250)
+        self.input_text=tk.Text(self.master,height=4, width=18,font=self.font)
+        self.input_text.place(x=10,y=280)
+        
+        label = tk.Label(self.master, text='[8]その他',font=self.boldfont)
+        label.place(x=170,y=280) 
+        button = tk.Button(self.master, text='画像の余白を削除',font=self.font,command=self.erase_margin)
+        button.place(x=170,y=310) 
         
         x=30
-        y=270
-        label=tk.Label(root,text="Skin Merge",font=self.boldfont)
+        y=400
+        label=tk.Label(root,text="[9]Skin Merge",font=self.boldfont)
         label.place(x=x-20,y=y-60)
-        label=tk.Label(root,text="優先1",font=self.boldfont)
+        label=tk.Label(root,text="(1)優先1",font=self.boldfont)
         label.place(x=x,y=y-40)
         label=tk.Label(root,text="body",font=self.boldfont)
         label.place(x=x+30,y=y-20)
@@ -287,8 +333,8 @@ class Application(tk.Frame):
         
         
         x=30
-        y=470
-        label=tk.Label(root,text="優先2",font=self.boldfont)
+        y=600
+        label=tk.Label(root,text="(2)優先2",font=self.boldfont)
         label.place(x=x,y=y-40)
         label=tk.Label(root,text="body",font=self.boldfont)
         label.place(x=x+30,y=y-20)
@@ -360,7 +406,7 @@ class Application(tk.Frame):
         self.wide_slimbutton.place(x=505,y=10)
         
         button=tk.Button(self.master,text="Merge",font=self.boldfont,command=self.merge)
-        button.place(x=100,y=652)
+        button.place(x=100,y=762)
         
         label=tk.Label(self.master,text="パーツ境界を表示",font=self.boldfont)
         label.place(x=870,y=330)
@@ -372,6 +418,8 @@ class Application(tk.Frame):
         
         self.canvas_size=7
         self.canvas = tk.Canvas(root, bg="#c0c0c0", width=64*self.canvas_size, height=64*self.canvas_size)
+        self.canvas.drop_target_register(DND_FILES)
+        self.canvas.dnd_bind('<<Drop>>', lambda e:self.input_file(e,index=0))
         self.canvas.place(x=556,y=360)
         self.add_skin_border(self.canvas)
         ###################################################
@@ -418,6 +466,8 @@ class Application(tk.Frame):
         self.radio_b2.pack(side="right")
         # 画像を表示するキャンバス
         self.preview_canvas = tk.Canvas(root, bg="#c0c0c0", width=64*self.canvas_size, height=64*self.canvas_size)
+        self.preview_canvas.drop_target_register(DND_FILES)
+        self.preview_canvas.dnd_bind('<<Drop>>', lambda e:self.input_file(e,index=0))
         self.preview_canvas.place(x=1026,y=360)
         self.add_skin_border(self.preview_canvas)
         # slim to wide
@@ -444,6 +494,35 @@ class Application(tk.Frame):
         self.selected_pixels = set()
         ####################################################
         self.init_graph()
+    def retreive_skin(self):
+        text=self.input_text.get(0., tk.END)
+        if text.startswith("<ol>"):
+            html_code=text.split("\n")
+            text=[]
+            for html_line in html_code:
+                match = re.search(r'<a.*?>(.*?)</a>', html_line)
+                if match:
+                    text.append(match.group(1))
+        else :
+            text=text.split("\n")
+            text=[a for a in text if a != '']
+        text2=""
+        for mcid in text:
+            value=sr.get_skin_data(mcid)
+            if value==None:
+                text2+=mcid+"\n"
+                self.output_status_bar("MCID:"+mcid+"のスキンは入手できませんでした")
+                continue
+            img=np.array(value,dtype=float)/255.0
+            if img.shape==(32,64,4):
+                img=Convert32to64.resize_img(img)
+            self.img_list[0].append(img)
+            self.add_List(0,mcid+".png")
+            self.output_status_bar(mcid+"のスキンを追加しました。")
+        self.input_text.delete(0.,tk.END)
+        self.input_text.insert(tk.END,text2)
+        print(text)
+    ###############################################################
     # 画像をリストに反映
     def reflect(self,i):
         if hasattr(self,"fname"):
@@ -455,6 +534,7 @@ class Application(tk.Frame):
             self.add_List(0,self.fname)
             self.reset_selection()
             self.highlight_selected_pixels()
+            self.output_status_bar("画像をリスト(0)に追加しました。")
     #色の閾値
     def set_threshold(self,value):
         self.Threshold.set(self.scale.get())
@@ -471,7 +551,7 @@ class Application(tk.Frame):
     #範囲に追加
     def add_pixel(self,i,j):
         try:
-            r, g, b, alpha = self.image.getpixel((i,j))
+            _, _, _, alpha = self.image.getpixel((i,j))
         except IndexError:
             return
         if alpha==0:
@@ -691,6 +771,8 @@ class Application(tk.Frame):
     def init_graph(self):
         # matplotlib配置用フレーム
         frame = tk.Frame(self.master,relief=tk.SOLID)
+        frame.drop_target_register(DND_FILES)
+        frame.dnd_bind('<<Drop>>', lambda e:self.input_file(e,index=0))
         #描画用フレームをウィンドウに配置(右)
         frame.place(x=556,y=10,width=284,height=320)
         if hasattr(self,"ax"):
@@ -759,10 +841,40 @@ class Application(tk.Frame):
             
             self.master.destroy()
             exit()
+    def dndstrtoary(self, drop_str):
+        i = 0
+        files = []
+        while i < len(drop_str):
+            if drop_str[i] == '{':
+                fd = drop_str.find('}', i)
+                filname = drop_str[i+1:fd]
+                i = fd + 1
+
+                files.append(filname)
+                if len(drop_str) <= i:
+                    break
+
+                if drop_str[i] == ' ':
+                    i += 1
+            else:
+                fd = drop_str.find(' ', i)
+                if fd < 0:
+                    filname = drop_str[i:]
+                    i = len(drop_str)
+                else:
+                    filname = drop_str[i:fd]
+                    i = fd + 1
+                files.append(filname)
+        return files
+    def input_file(self,e,index):
+        self.input_file_path(index,self.dndstrtoary(e.data))
+            
     def open_file(self,index):
         ''' ファイルを開く'''
         # ファイルを開くダイアログ
         filenames = filedialog.askopenfilenames(initialdir = os.getcwd())
+        self.input_file_path(index,filenames=filenames)
+    def input_file_path(self,index,filenames):
         id=len(self.img_list[index])
         for filename in filenames:
             if not filename.endswith('.png'):
@@ -774,8 +886,8 @@ class Application(tk.Frame):
                 if img.shape==(32,64,4):
                     img=Convert32to64.resize_img(img)
                 if img.shape!=(64,64,4):
-                    print("invalid file:ファイルは64x64のpngを選択してください\n")
-                    self.output_status_bar("invalid file:ファイルは32x64または64x64のpngを選択してください\n")
+                    print("invalid file:ファイルは64x64のpngを選択してください")
+                    self.output_status_bar("invalid file:ファイルは32x64または64x64のpngを選択してください")
                     continue
                 self.img_list[index].append(img)
                 self.add_List(index,basename)
@@ -1033,6 +1145,56 @@ class Application(tk.Frame):
             if lf.judge_slim_classic(img):
                 self.img_list[0][i]=SlimWideConverter.slim2wide(img)
         self.plot_graph(0)
+    def toInnerLayer(self):
+        if len(self.img_list[0])==0:
+            self.output_status_bar("ファイルが選択されていません")
+            return 
+        indices = self.listbox[0].curselection()
+        if len(indices)==0:
+            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
+            return 
+        for i in indices: 
+            img=self.img_list[0][i]
+            self.img_list[0][i]=bl.bring_one_layer(img,0)
+        self.plot_graph(0)
+    def toOuterLayer(self):
+        if len(self.img_list[0])==0:
+            self.output_status_bar("ファイルが選択されていません")
+            return 
+        indices = self.listbox[0].curselection()
+        if len(indices)==0:
+            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
+            return 
+        for i in indices: 
+            img=self.img_list[0][i]
+            self.img_list[0][i]=bl.bring_one_layer(img,1)
+        self.plot_graph(0)
+    def toStamp(self):
+        if len(self.img_list[0])==0:
+            self.output_status_bar("ファイルが選択されていません")
+            return 
+        indices = self.listbox[0].curselection()
+        if len(indices)==0:
+            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
+            return 
+        for i in indices: 
+            img=self.img_list[0][i]
+            self.img_list[0][i]=lift.compress_list_upper(img)
+        self.plot_graph(0)
+    def duplicate(self):
+        if len(self.img_list[0])==0:
+            self.output_status_bar("ファイルが選択されていません")
+            return 
+        indices = self.listbox[0].curselection()
+        if len(indices)==0:
+            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
+            return 
+        for i in indices: 
+            img=copy.deepcopy(self.img_list[0][i])
+            filename=self.listbox[0].get(i)
+            self.img_list[0].append(img)
+            self.add_List(0,filename)
+            
     def replace(self):#headの置き換え
         if len(self.img_list[0])==0:
             self.output_status_bar("ファイルが選択されていません")
@@ -1050,12 +1212,39 @@ class Application(tk.Frame):
             if img2.shape==(32,64,4):
                     img2=Convert32to64.resize_img(img2)
             if img2.shape!=(64,64,4):
-                print("invalid file:ファイルは32x64または64x64のpngを選択してください\n")
-                self.output_status_bar("invalid file:ファイルは32x64または64x64のpngを選択してください\n")
+                print("invalid file:ファイルは32x64または64x64のpngを選択してください")
+                self.output_status_bar("invalid file:ファイルは32x64または64x64のpngを選択してください")
                 return
             for i in indices: 
                 img=self.img_list[0][i]
                 self.img_list[0][i]=lift.replace_head(img,img2)
+            self.plot_graph(0)
+        except TypeError:
+            print("入力ファイルが読み込めませんでした\n")
+            self.output_status_bar("入力ファイルが読み込めませんでした")
+    def replace_leg(self):#headの置き換え
+        if len(self.img_list[0])==0:
+            self.output_status_bar("ファイルが選択されていません")
+            return 
+        indices = self.listbox[0].curselection()
+        if len(indices)==0:
+            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
+            return 
+        ###
+        filename = tk.filedialog.askopenfilename(initialdir = os.getcwd())
+        basename = os.path.basename(filename)
+        print("入力ファイル:"+filename)
+        try:
+            img2 = image.imread(filename)
+            if img2.shape==(32,64,4):
+                    img2=Convert32to64.resize_img(img2)
+            if img2.shape!=(64,64,4):
+                print("invalid file:ファイルは32x64または64x64のpngを選択してください")
+                self.output_status_bar("invalid file:ファイルは32x64または64x64のpngを選択してください")
+                return
+            for i in indices: 
+                img=self.img_list[0][i]
+                self.img_list[0][i]=lift.replace_leg(img,img2)
             self.plot_graph(0)
         except TypeError:
             print("入力ファイルが読み込めませんでした\n")
@@ -1249,6 +1438,6 @@ class Application(tk.Frame):
         self.add_skin_border(self.preview_canvas)
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = TkinterDnD.Tk()
     app = Application(master=root)
     app.mainloop()
