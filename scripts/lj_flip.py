@@ -162,8 +162,6 @@ def flip(img1):#配列データ入力
     else :
         flip_limb(img1,12,8)
         flip_limb(img1,12,12)
-
-    img2=copy.deepcopy(img1)
     exchange_limb(img1)#左右変更
     #test func
     #cv2.imwrite("2.png",img1)

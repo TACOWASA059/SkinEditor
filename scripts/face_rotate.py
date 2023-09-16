@@ -8,12 +8,12 @@ def head_rotate_layer(img1,y):
     img2=copy.deepcopy(img1)
     p=8
     img2[p:2*p,p+y:2*p+y]=tf.rotate(img1[p:2*p,p+y:2*p+y],-1)
-    img2[p:2*p,y:p+y]=tf.rotate(img1[:p,y+2*p:y+3*p],1)
+    img2[p:2*p,y:p+y]=tf.rotate(img1[:p,y+2*p:y+3*p],1)#
     img2[p:2*p,y:p+y]=tf.upsidedown(img2[p:2*p,y:p+y])
-    img2[p:2*p,y+2*p:y+3*p]=tf.rotate(img1[:p,y+p:y+2*p],-1)
+    img2[p:2*p,y+2*p:y+3*p]=tf.rotate(img1[:p,y+p:y+2*p],-1)#
     img2[p:2*p,y+3*p:y+4*p]=tf.rotate(img1[p:2*p,y+3*p:y+4*p],1)
-    img2[:p,y+p:y+2*p]=tf.rotate(img1[p:2*p,y:y+p],-1)
-    img2[:p,y+2*p:y+3*p]=tf.rotate(img1[p:2*p,y+2*p:y+3*p],1)
+    img2[:p,y+p:y+2*p]=tf.rotate(img1[p:2*p,y:y+p],-1)#
+    img2[:p,y+2*p:y+3*p]=tf.rotate(img1[p:2*p,y+2*p:y+3*p],1)#
     img2[:p,y+2*p:y+3*p]=tf.flip(img2[:p,y+2*p:y+3*p])
     return img2
 def head_rotate(img1):#正面手前方向に軸

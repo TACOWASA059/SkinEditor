@@ -46,7 +46,6 @@ windowsのみ対応
 * tkinter
 ###  scripts
 ```bash
-cd SkinEditor
 cd scripts
 pip install -r requirements.txt
 python3 app_plot.py

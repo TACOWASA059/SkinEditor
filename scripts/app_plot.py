@@ -18,6 +18,7 @@ import Convert32to64
 import SlimWideConverter
 import SkinRetreive as sr
 import BringOneLayer as bl
+import gray
 from PIL import Image, ImageTk, ImageDraw
 
 class Application(tk.Frame):
@@ -282,6 +283,9 @@ class Application(tk.Frame):
         label.place(x=170,y=280) 
         button = tk.Button(self.master, text='画像の余白を削除',font=self.font,command=self.erase_margin)
         button.place(x=170,y=310) 
+        
+        button = tk.Button(self.master, text='グレースケール化',font=self.font,command=self.toGray)
+        button.place(x=170,y=340) 
         
         x=30
         y=400
@@ -991,64 +995,35 @@ class Application(tk.Frame):
         self.label1 = tk.Label(self.frame_status_bar, text = text)
         self.label1.pack(side = tk.LEFT)
         self.frame_status_bar.pack(side = tk.BOTTOM, fill = tk.X)
+    def extract_selection(self,index):
+        if len(self.img_list[index])==0:
+            self.output_status_bar("ファイルが読み込まれていません")
+            return []
+        indices = self.listbox[index].curselection()
+        if len(indices)==0:
+            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
+            return []
+        return indices
+    def operation(self,index,func):
+        indices = self.extract_selection(index)
+        for i in indices: 
+            img=self.img_list[index][i]
+            self.img_list[index][i]=func(img)
+        self.plot_graph(index)
     #前後
     def backwards(self,index):
-        if len(self.img_list[index])==0:
-            self.output_status_bar("ファイルが読み込まれていません")
-            return 
-        indices = self.listbox[index].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
-        for i in indices: 
-            img=self.img_list[index][i]
-            self.img_list[index][i]=bf.backwards(img)
-        self.plot_graph(index)
+        self.operation(index,bf.backwards)
     #左右
     def flip(self,index):
-        if len(self.img_list[index])==0:
-            self.output_status_bar("ファイルが読み込まれていません")
-            return 
-        indices = self.listbox[index].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
-        for i in indices: 
-            img=self.img_list[index][i]
-            self.img_list[index][i]=lf.flip(img)
-        self.plot_graph(index)
+        self.operation(index,lf.flip)
+    #上下
     def upsidedown(self,index):
-        if len(self.img_list[index])==0:
-            self.output_status_bar("ファイルが読み込まれていません")
-            return 
-        indices = self.listbox[index].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
-        for i in indices: 
-            img=self.img_list[index][i]
-            self.img_list[index][i]=uf.upsidedown(img)
-        self.plot_graph(index)
+        self.operation(index,uf.upsidedown)
+    #回転
     def up(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが読み込まれていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
-        for i in indices: 
-            img=self.img_list[0][i]
-            self.img_list[0][i]=fr.head_rotate_horizontal(img)
-        self.plot_graph(0)
+        self.operation(0,fr.head_rotate_horizontal)
     def down(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが読み込まれていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
+        indices = self.extract_selection(0)
         for i in indices: 
             img=self.img_list[0][i]
             img=fr.head_rotate_horizontal(img)
@@ -1056,25 +1031,9 @@ class Application(tk.Frame):
             self.img_list[0][i]=fr.head_rotate_horizontal(img)
         self.plot_graph(0)
     def right(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが読み込まれていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
-        for i in indices: 
-            img=self.img_list[0][i]
-            self.img_list[0][i]=fr.head_rotate_vertical(img)
-        self.plot_graph(0)
+        self.operation(0,fr.head_rotate_vertical)
     def left(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが読み込まれていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
+        indices = self.extract_selection(0)
         for i in indices: 
             img=self.img_list[0][i]
             img=fr.head_rotate_vertical(img)
@@ -1082,25 +1041,9 @@ class Application(tk.Frame):
             self.img_list[0][i]=fr.head_rotate_vertical(img)
         self.plot_graph(0)
     def rotate_clock(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
-        for i in indices: 
-            img=self.img_list[0][i]
-            self.img_list[0][i]=fr.head_rotate(img)
-        self.plot_graph(0)
+        self.operation(0,fr.head_rotate)
     def rotate_counter_clock(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
+        indices = self.extract_selection(0)
         for i in indices: 
             img=self.img_list[0][i]
             img=fr.head_rotate(img)
@@ -1108,148 +1051,79 @@ class Application(tk.Frame):
             self.img_list[0][i]=fr.head_rotate(img)
         self.plot_graph(0)
     def compress(self):#圧縮
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
-        for i in indices: 
-            img=self.img_list[0][i]
-            self.img_list[0][i]=lift.compress_list(img)
-        self.plot_graph(0)
+        self.operation(0,lift.compress_list)
     def toslim(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
+        indices = self.extract_selection(0)
         for i in indices: 
             img=self.img_list[0][i]
             if not lf.judge_slim_classic(img):
                 self.img_list[0][i]=SlimWideConverter.wide2slim(img)
         self.plot_graph(0)
     def towide(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
+        indices = self.extract_selection(0)
         for i in indices: 
             img=self.img_list[0][i]
             if lf.judge_slim_classic(img):
                 self.img_list[0][i]=SlimWideConverter.slim2wide(img)
         self.plot_graph(0)
     def toInnerLayer(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
+        indices = self.extract_selection(0)
         for i in indices: 
             img=self.img_list[0][i]
             self.img_list[0][i]=bl.bring_one_layer(img,0)
         self.plot_graph(0)
     def toOuterLayer(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
+        indices = self.extract_selection(0)
         for i in indices: 
             img=self.img_list[0][i]
             self.img_list[0][i]=bl.bring_one_layer(img,1)
         self.plot_graph(0)
     def toStamp(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
-        for i in indices: 
-            img=self.img_list[0][i]
-            self.img_list[0][i]=lift.compress_list_upper(img)
-        self.plot_graph(0)
+        self.operation(0,lift.compress_list_upper)
+    def toGray(self):
+        self.operation(0,gray.toGray)
     def duplicate(self):
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
+        indices = self.extract_selection(0)
         for i in indices: 
             img=copy.deepcopy(self.img_list[0][i])
             filename=self.listbox[0].get(i)
             self.img_list[0].append(img)
             self.add_List(0,filename)
-            
+    def replace_parts(self,func):
+        if len(self.img_list[0])==0:
+            self.output_status_bar("ファイルが選択されていません")
+            return 
+        indices = self.listbox[0].curselection()
+        if len(indices)==0:
+            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
+            return 
+        ###
+        filenames = tk.filedialog.askopenfilenames(initialdir = os.getcwd())
+        for filename in filenames:
+            basename=os.path.basename(filename)
+            print("入力ファイル:"+filename)
+            if os.path.exists(filename):
+                img2 = image.imread(filename)
+                if img2.shape==(32,64,4):
+                        img2=Convert32to64.resize_img(img2)
+                if img2.shape!=(64,64,4):
+                    print("invalid file:ファイルは32x64または64x64のpngを選択してください")
+                    self.output_status_bar("invalid file:ファイルは32x64または64x64のpngを選択してください")
+                    return
+                for i in indices: 
+                    img=self.img_list[0][i]
+                    img3=func(copy.deepcopy(img),img2)
+                    self.img_list[0].append(img3)
+                    name1=self.listbox[0].get(i).replace(".png","")+"-"+basename+".png"
+                    self.add_List(0,name1)
+                self.plot_graph(0)
+            else:
+                print("入力ファイルが読み込めませんでした\n")
+                self.output_status_bar("入力ファイルが読み込めませんでした")
     def replace(self):#headの置き換え
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
-        ###
-        filename = tk.filedialog.askopenfilename(initialdir = os.getcwd())
-        basename = os.path.basename(filename)
-        print("入力ファイル:"+filename)
-        try:
-            img2 = image.imread(filename)
-            if img2.shape==(32,64,4):
-                    img2=Convert32to64.resize_img(img2)
-            if img2.shape!=(64,64,4):
-                print("invalid file:ファイルは32x64または64x64のpngを選択してください")
-                self.output_status_bar("invalid file:ファイルは32x64または64x64のpngを選択してください")
-                return
-            for i in indices: 
-                img=self.img_list[0][i]
-                self.img_list[0][i]=lift.replace_head(img,img2)
-            self.plot_graph(0)
-        except TypeError:
-            print("入力ファイルが読み込めませんでした\n")
-            self.output_status_bar("入力ファイルが読み込めませんでした")
+        self.replace_parts(lift.replace_head)
     def replace_leg(self):#headの置き換え
-        if len(self.img_list[0])==0:
-            self.output_status_bar("ファイルが選択されていません")
-            return 
-        indices = self.listbox[0].curselection()
-        if len(indices)==0:
-            self.output_status_bar("ファイルが選択されていません。リストからファイルを選択してください")
-            return 
-        ###
-        filename = tk.filedialog.askopenfilename(initialdir = os.getcwd())
-        basename = os.path.basename(filename)
-        print("入力ファイル:"+filename)
-        try:
-            img2 = image.imread(filename)
-            if img2.shape==(32,64,4):
-                    img2=Convert32to64.resize_img(img2)
-            if img2.shape!=(64,64,4):
-                print("invalid file:ファイルは32x64または64x64のpngを選択してください")
-                self.output_status_bar("invalid file:ファイルは32x64または64x64のpngを選択してください")
-                return
-            for i in indices: 
-                img=self.img_list[0][i]
-                self.img_list[0][i]=lift.replace_leg(img,img2)
-            self.plot_graph(0)
-        except TypeError:
-            print("入力ファイルが読み込めませんでした\n")
-            self.output_status_bar("入力ファイルが読み込めませんでした")
-        ###
+        self.replace_parts(lift.replace_leg)
     def merge(self):
         if len(self.img_list[1])==0:
             self.output_status_bar("優先1リストにファイルがありません")

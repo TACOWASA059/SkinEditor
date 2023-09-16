@@ -131,23 +131,23 @@ def exchange_upsidedown(img1):#上下の交換
     img2[12*q:13*q,6*q:7*q]=cut_list(img1[0:p,2*p+q:3*p],axis=0)
 
     #側面
-    img2[p:2*p,0:p]=img1[5*q:7*q,0:q].repeat(2,axis=1)
-    img2[5*q+4:7*q+4,0:q]=cut_list(img1[p:2*p,0:p],axis=1)
+    img2[p:2*p,0:p]=img1[5*q:7*q,0:q].repeat(2,axis=1)#
+    img2[5*q+4:7*q+4,0:q]=cut_list(img1[p:2*p,0:p],axis=1)#
+    
+    img2[p:2*p,2*p:3*p]=img1[13*q:15*q,6*q:7*q].repeat(2,axis=1)#
+    img2[13*q+4:15*q+4,6*q:7*q]=cut_list(img1[p:2*p,2*p:3*p],axis=1)#
+    ##
+    img2[p:2*p,p:p+q]=img1[5*q:7*q,q:2*q]#
+    img2[5*q+4:7*q+4,q:2*q]=img1[p:2*p,p:p+q]#
 
-    img2[p:2*p,p:p+q]=img1[5*q:7*q,q:2*q]
-    img2[5*q+4:7*q+4,q:2*q]=img1[p:2*p,p:p+q]
+    img2[p:2*p,p+q:2*p]=img1[13*q:15*q,5*q:6*q]#
+    img2[13*q+4:15*q+4,5*q:6*q]=img1[p:2*p,p+q:2*p]#
 
-    img2[p:2*p,p+q:2*p]=img1[13*q:15*q,5*q:6*q]
-    img2[13*q+4:15*q+4,5*q:6*q]=img1[p:2*p,p+q:2*p]
+    img2[p:2*p,3*p:3*p+q]=img1[13*q:15*q,7*q:8*q]#
+    img2[13*q+4:15*q+4,7*q:8*q]=img1[p:2*p,3*p:3*p+q]#
 
-    img2[p:2*p,2*p:3*p]=img1[13*q:15*q,6*q:7*q].repeat(2,axis=1)
-    img2[13*q+4:15*q+4,6*q:7*q]=cut_list(img1[p:2*p,2*p:3*p],axis=1)
-
-    img2[p:2*p,3*p:3*p+q]=img1[13*q:15*q,7*q:8*q]
-    img2[13*q+4:15*q+4,7*q:8*q]=img1[p:2*p,3*p:3*p+q]
-
-    img2[p:2*p,3*p+q:4*p]=img1[5*q:7*q,3*q:4*q]
-    img2[5*q+4:7*q+4,3*q:4*q]=img1[p:2*p,3*p+q:4*p]
+    img2[p:2*p,3*p+q:4*p]=img1[5*q:7*q,3*q:4*q]#
+    img2[5*q+4:7*q+4,3*q:4*q]=img1[p:2*p,3*p+q:4*p]#
     #顔の上位レイヤー
     #上面
     img2[0:p,5*p:5*p+q]=img1[8*q:9*q,q:2*q].repeat(2,axis=0)#行方向に伸ばす
@@ -158,15 +158,15 @@ def exchange_upsidedown(img1):#上下の交換
     
     img2[p:2*p,4*p:5*p]=img1[9*q:11*q,0:q].repeat(2,axis=1)
     img2[9*q+4:11*q+4,0:q]=cut_list(img1[p:2*p,4*p:5*p],axis=1)
-
+    
+    img2[p:2*p,6*p:7*p]=img1[13*q:15*q,2*q:3*q].repeat(2,axis=1)
+    img2[13*q+4:15*q+4,2*q:3*q]=cut_list(img1[p:2*p,6*p:7*p],axis=1)
+    #
     img2[p:2*p,5*p:5*p+q]=img1[9*q:11*q,q:2*q]
     img2[9*q+4:11*q+4,q:2*q]=img1[p:2*p,5*p:5*p+q]
 
     img2[p:2*p,5*p+q:6*p]=img1[13*q:15*q,q:2*q]
     img2[13*q+4:15*q+4,q:2*q]=img1[p:2*p,5*p+q:6*p]
-
-    img2[p:2*p,6*p:7*p]=img1[13*q:15*q,2*q:3*q].repeat(2,axis=1)
-    img2[13*q+4:15*q+4,2*q:3*q]=cut_list(img1[p:2*p,6*p:7*p],axis=1)
 
     img2[p:2*p,7*p:7*p+q]=img1[13*q:15*q,3*q:4*q]
     img2[13*q+4:15*q+4,3*q:4*q]=img1[p:2*p,7*p:7*p+q]
@@ -175,29 +175,29 @@ def exchange_upsidedown(img1):#上下の交換
     img2[9*q+4:11*q+4,3*q:4*q]=img1[p:2*p,7*p+q:8*p]
 
     #胴体と右足(下位レイヤー)
-    img2[5*q:6*q,4*q:6*q]=img1[7*q:8*q,0:2*q]
-    img2[5*q:6*q,0:2*q]=img1[7*q:8*q,4*q:6*q]
+    img2[5*q:6*q,4*q:6*q]=img1[7*q:8*q,0:2*q]#
+    img2[5*q:6*q,0:2*q]=img1[7*q:8*q,4*q:6*q]#
 
-    img2[5*q:6*q,9*q:10*q]=img1[7*q:8*q,3*q:4*q]
-    img2[5*q:6*q,3*q:4*q]=img1[7*q:8*q,9*q:10*q]
+    img2[5*q:6*q,9*q:10*q]=img1[7*q:8*q,3*q:4*q]#
+    img2[5*q:6*q,3*q:4*q]=img1[7*q:8*q,9*q:10*q]#
     #胴体と左足(下位レイヤー)
-    img2[5*q:6*q,6*q:9*q]=img1[15*q:16*q,5*q:8*q]
-    img2[13*q:14*q,5*q:8*q]=img1[7*q:8*q,6*q:9*q]
+    img2[5*q:6*q,6*q:9*q]=img1[15*q:16*q,5*q:8*q]#
+    img2[13*q:14*q,5*q:8*q]=img1[7*q:8*q,6*q:9*q]#
 
     #胴体4つ下げ(下位レイヤー)
-    img2[6*q:8*q,4*q:10*q]=img1[5*q:7*q,4*q:10*q]
+    img2[6*q:8*q,4*q:10*q]=img1[5*q:7*q,4*q:10*q]#
     #胴体4つ下げ(上位レイヤー)
-    img2[10*q:12*q,4*q:10*q]=img1[9*q:11*q,4*q:10*q]
+    img2[10*q:12*q,4*q:10*q]=img1[9*q:11*q,4*q:10*q]#
 
     #胴体と右足(上位レイヤー)
-    img2[9*q:10*q,4*q:6*q]=img1[11*q:12*q,0:2*q]
-    img2[9*q:10*q,0:2*q]=img1[11*q:12*q,4*q:6*q]
+    img2[9*q:10*q,4*q:6*q]=img1[11*q:12*q,0:2*q]#
+    img2[9*q:10*q,0:2*q]=img1[11*q:12*q,4*q:6*q]#
 
-    img2[9*q:10*q,9*q:10*q]=img1[11*q:12*q,3*q:4*q]
-    img2[9*q:10*q,3*q:4*q]=img1[11*q:12*q,9*q:10*q]
+    img2[9*q:10*q,9*q:10*q]=img1[11*q:12*q,3*q:4*q]#
+    img2[9*q:10*q,3*q:4*q]=img1[11*q:12*q,9*q:10*q]#
     #胴体と左足(上位レイヤー)
-    img2[9*q:10*q,6*q:9*q]=img1[15*q:16*q,q:4*q]
-    img2[13*q:14*q,q:4*q]=img1[11*q:12*q,6*q:9*q]
+    img2[9*q:10*q,6*q:9*q]=img1[15*q:16*q,q:4*q]#
+    img2[13*q:14*q,q:4*q]=img1[11*q:12*q,6*q:9*q]#
 
     #顔の底面側の指定
     #下位レイヤー
@@ -240,7 +240,7 @@ def exchange_upsidedown(img1):#上下の交換
     upperside_leg(img2,48,0)
     upperside_leg(img2,48,16)
 
-    #足の側面
+    #足の側面(不要)
     img2[5*q:8*q,2*q:3*q]=img2[13*q:16*q,5*q:6*q]
     img2[9*q:12*q,2*q:3*q]=img2[13*q:16*q,1*q:2*q]
     img2[13*q:16*q,4*q:5*q]=img2[5*q:8*q,1*q:2*q]
@@ -293,8 +293,6 @@ def upsidedown(img1):
     else :
         upsidedown_limb(img1,12,8)
         upsidedown_limb(img1,12,12)
-
-    img2=copy.deepcopy(img1)
     img1=exchange_upsidedown(img1)#上下入れ替え
     #test func
     #cv2.imwrite("2.png",img1)

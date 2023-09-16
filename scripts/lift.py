@@ -170,7 +170,7 @@ def compress_list(img1):
 
     #bodyを下に移動
     img1[8*q-4:8*q,4*q:10*q]=tf.upsidedown(list1[4:8])
-    img1[12*q-4:12*q,4*q:10*q]=tf.upsidedown(list2[4:8])
+    img1[12*q-4:12*q,4*q:10*q]=tf.upsidedown(list2[4:8])#
 
     #頭を胴体に移動
     p=8
@@ -206,7 +206,7 @@ def compress_list(img1):
     uf.upperside_leg(img1,48,0)
     uf.upperside_leg(img1,48,16)
     #print(type(img1))
-    #足の側面
+    #足の側面(不要)
     img1[5*q:6*q,2*q:3*q]=img1[13*q:14*q,5*q:6*q]
     img1[9*q:10*q,2*q:3*q]=img1[13*q:14*q,1*q:2*q]
     img1[13*q:14*q,4*q:5*q]=img1[5*q:6*q,1*q:2*q]
@@ -247,6 +247,7 @@ def replace_leg(img1,img2):#img1のlegをimg2のheadで置き換え
     img1[13*q+4:15*q+4,2*q:3*q]=uf.cut_list(img2[p:2*p,6*p:7*p],axis=1)
     img1[13*q+4:15*q+4,3*q:4*q]=img2[p:2*p,7*p:7*p+q]
     img1[9*q+4:11*q+4,3*q:4*q]=img2[p:2*p,7*p+q:8*p]
+    
     
     img1[5*q:8*q,2*q:3*q]=img1[13*q:16*q,5*q:6*q]
     img1[9*q:12*q,2*q:3*q]=img1[13*q:16*q,1*q:2*q]
